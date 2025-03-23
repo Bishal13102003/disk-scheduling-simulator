@@ -1,39 +1,62 @@
+import tkinter as tk
+from tkinter import messagebox
 from algorithms import fcfs, sstf, scan, c_scan
-from visualizer import plot_schedule
 from metrics import calculate_metrics
+from visualizer import plot_seek_sequence
 
-def main():
-    print("Disk Scheduling Simulator")
-    head = int(input("Enter initial head position: "))
-    requests = list(map(int, input("Enter space-separated disk requests: ").split()))
+def run_simulation():
+    try:
+        requests = list(map(int, entry_requests.get().split()))
+        head = int(entry_head.get())
+        algorithm = algo_var.get()
 
-    print("\nChoose Algorithm:")
-    print("1. FCFS\n2. SSTF\n3. SCAN\n4. C-SCAN")
-    choice = int(input("Enter your choice (1-4): "))
+        if algorithm == "FCFS":
+            seek_sequence, _ = fcfs(requests, head)
+        elif algorithm == "SSTF":
+            seek_sequence, _ = sstf(requests, head)
+        elif algorithm == "SCAN":
+            seek_sequence, _ = scan(requests, head)
+        elif algorithm == "C-SCAN":
+            seek_sequence, _ = c_scan(requests, head)
+        else:
+            messagebox.showerror("Error", "Invalid algorithm selected!")
+            return
 
-    if choice == 1:
-        seek_sequence, seek_time = fcfs(requests, head)
-        title = "FCFS Scheduling"
-    elif choice == 2:
-        seek_sequence, seek_time = sstf(requests, head)
-        title = "SSTF Scheduling"
-    elif choice == 3:
-        direction = input("Enter direction (left/right): ").lower()
-        seek_sequence, seek_time = scan(requests, head, direction)
-        title = "SCAN Scheduling"
-    elif choice == 4:
-        seek_sequence, seek_time = c_scan(requests, head)
-        title = "C-SCAN Scheduling"
-    else:
-        print("Invalid choice!")
-        return
+        total_seek, avg_seek, throughput = calculate_metrics(seek_sequence, head)
+        result = (
+            f"Seek Sequence: {seek_sequence}\n"
+            f"Total Seek Time: {total_seek}\n"
+            f"Average Seek Time: {avg_seek:.2f}\n"
+            f"Throughput: {throughput:.2f} requests/unit time"
+        )
+        output_label.config(text=result)
 
-    print("\nSeek Sequence:", " -> ".join(map(str, seek_sequence)))
-    metrics = calculate_metrics(seek_sequence, seek_time)
-    print(f"Total Seek Time: {metrics['Total Seek Time']}")
-    print(f"Average Seek Time: {metrics['Average Seek Time']:.2f}")
+        plot_seek_sequence(seek_sequence, head)
 
-    plot_schedule(seek_sequence, title)
+    except ValueError:
+        messagebox.showerror("Input Error", "Please enter valid numeric values.")
 
-if __name__ == "__main__":
-    main()
+
+root = tk.Tk()
+root.title("Disk Scheduling Simulator")
+root.geometry("500x450")
+
+tk.Label(root, text="Enter disk requests (space-separated):").pack()
+entry_requests = tk.Entry(root, width=50)
+entry_requests.pack(pady=5)
+
+tk.Label(root, text="Enter initial head position:").pack()
+entry_head = tk.Entry(root, width=30)
+entry_head.pack(pady=5)
+
+tk.Label(root, text="Select Scheduling Algorithm:").pack()
+algo_var = tk.StringVar(value="FCFS")
+tk.OptionMenu(root, algo_var, "FCFS", "SSTF", "SCAN", "C-SCAN").pack(pady=5)
+
+tk.Button(root, text="Run Simulation", command=run_simulation).pack(pady=10)
+
+output_label = tk.Label(root, text="", justify="left", font=("Courier", 10))
+output_label.pack(pady=10)
+
+root.mainloop()
+

@@ -19,32 +19,34 @@ def sstf(requests, head):
 
 def scan(requests, head, direction="right", disk_size=200):
     requests.sort()
-    left, right = [], []
+    left = [req for req in requests if req < head]
+    right = [req for req in requests if req >= head]
 
-    for req in requests:
-        if req < head:
-            left.append(req)
-        else:
-            right.append(req)
+    seek_sequence = [head]
 
     if direction == "right":
-        seek_sequence = [head] + right + left[::-1]
+        seek_sequence += right
+        if left:
+            seek_sequence += [disk_size - 1]
+            seek_sequence += left[::-1]
     else:
-        seek_sequence = [head] + left[::-1] + right
+        seek_sequence += left[::-1]
+        if right:
+            seek_sequence += [0]
+            seek_sequence += right
 
     seek_time = sum(abs(seek_sequence[i] - seek_sequence[i-1]) for i in range(1, len(seek_sequence)))
     return seek_sequence, seek_time
 
 def c_scan(requests, head, disk_size=200):
     requests.sort()
-    left, right = [], []
+    left = [req for req in requests if req < head]
+    right = [req for req in requests if req >= head]
 
-    for req in requests:
-        if req < head:
-            left.append(req)
-        else:
-            right.append(req)
+    seek_sequence = [head] + right
 
-    seek_sequence = [head] + right + [disk_size, 0] + left
+    if left:
+        seek_sequence += [disk_size - 1, 0] + left
+
     seek_time = sum(abs(seek_sequence[i] - seek_sequence[i-1]) for i in range(1, len(seek_sequence)))
     return seek_sequence, seek_time
