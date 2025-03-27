@@ -51,7 +51,7 @@ Disk requests: 82 170 43 140 24 16 190
 
 ## 🖼️ GUI Preview
 
-![GUI Screenshot](screenshots/gui_preview.png)
+![GUI Screenshot](screenshots/gui_preview.jpg)
 
 
 ---
